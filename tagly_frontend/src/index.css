@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+	max-width: 1280px;
+	margin: 0 auto;
+  /* background: #000; */
+  /* color: #fff; */
+}
+
+/* .light {
+	background-color: #fff;
+	color: #000;
+} */
+
+.pacifico {
+  font-family: "Pacifico", serif;
+  font-optical-sizing: auto;
+}
+
+.raleway {
+  font-family: "Raleway", sans-serif;
+  font-optical-sizing: auto;
+}
+
+.montserrat {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+}
