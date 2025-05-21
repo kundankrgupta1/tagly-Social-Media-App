@@ -7,19 +7,15 @@ import Button from "../Components/Button";
 import { FaUserEdit } from "react-icons/fa";
 import Loading from "../Components/Loading";
 import { IoMdLogOut } from "react-icons/io";
-import SinglePost from "../Posts/SinglePost";
+import SinglePost from "./SinglePost";
 
 const Profile = () => {
 	const { token, isAuth, loggedInUser, logout, message, UserLogout } = useContext(ContextAPI)
 	const _id = useParams();
 	const [userData, setUserData] = useState(null);
-	const [postsData, setPostsData] = useState(null);
-	console.log("userData", userData);
-	console.log("postsData", postsData)
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState("");
 	const [singlePostView, setSinglePostView] = useState(false);
-	console.log("singlePost", singlePostView)
 	const fetchUser = async () => {
 		setIsLoading(true);
 		try {
@@ -37,6 +33,24 @@ const Profile = () => {
 			setIsLoading(false);
 		}
 	}
+
+	const handleDelete = async (postId) => {
+		
+		try {
+			const res = await axios.delete(`${SERVER_URI}/post/${postId}`, {
+				headers: {
+					Authorization: `Bearer ${token}`
+				}
+			})
+			fetchUser();
+			console.log(res.data)
+		} catch (error) {
+			console.log(error)
+		}
+	}
+
+
+	// console.log("postsData", postsData)
 
 	useEffect(() => {
 		fetchUser();
@@ -102,7 +116,14 @@ const Profile = () => {
 								<div className="grid grid-cols-3 gap-4">
 									{
 										userData?.totalPost.slice().reverse().map((post, index) => (
-											<div key={index} onClick={() => { setSinglePostView(true); setPostsData(post) }} className="cursor-pointer">
+											<div
+												key={index}
+												onClick={() => {
+													setSinglePostView(true);
+													localStorage.setItem("singlePost", JSON.stringify(post))
+												}}
+												className="cursor-pointer"
+											>
 												<img src={post.image} alt="post_image" className="w-full" />
 											</div>
 										))
@@ -135,7 +156,7 @@ const Profile = () => {
 			{singlePostView &&
 				(
 					<div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
-						<SinglePost userId={postsData?._id} caption={postsData?.caption} image={postsData?.image} location={postsData?.location} createdAt={postsData?.createdAt} />
+						<SinglePost userData={userData} setSinglePostView={setSinglePostView} handleDelete={handleDelete} />
 					</div>
 				)
 			}

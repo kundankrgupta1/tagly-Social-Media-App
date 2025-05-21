@@ -1,15 +1,14 @@
 import { useContext, useEffect, useState } from "react"
-import PostCard from "./PostCard"
+import SinglePost from "./PostCard"
 import { ContextAPI } from "../context/ContextProvider"
-import Loading from "../Components/Loading"
 import axios from "axios"
 import { SERVER_URI } from "../App"
-
-const AllPosts = () => {
-	const { token, UserLogout, setAllPostExplore } = useContext(ContextAPI)
+const Explore = () => {
+	const { token, UserLogout } = useContext(ContextAPI)
 	const [allPost, setAllPost] = useState([])
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState("")
+
 	const getPosts = async () => {
 		setIsLoading(true)
 		try {
@@ -19,7 +18,6 @@ const AllPosts = () => {
 				}
 			})
 			setAllPost(res.data.allPost)
-			setAllPostExplore(res.data.allPost)
 			setIsLoading(false)
 		} catch (error) {
 			setIsLoading(false)
@@ -37,47 +35,25 @@ const AllPosts = () => {
 			}, 2000)
 		}
 	}
-
-	const handleDelete = async (postId) => {
-		try {
-			const res = await axios.delete(`${SERVER_URI}/post/${postId}`, {
-				headers: {
-					Authorization: `Bearer ${token}`
-				}
-			})
-			getPosts();
-			console.log(res.data)
-		} catch (error) {
-			console.log(error)
-		}
-	}
-
 	useEffect(() => {
 		getPosts();
 	}, [])
 
 	return (
-		<>
-			{isLoading &&
-				<div className="flex items-center justify-center h-screen"><Loading text="Loading posts..." /></div>
-			}
-			{error && <p>{error}</p>}
-			{!isLoading && !error && (
-				<>
-					{allPost?.length > 0 ? (
-						allPost
-							.slice()
-							.reverse()
-							.map((post) => (
-								<PostCard key={post._id} {...post} handleDelete={() => handleDelete(post._id)} />
-							))
-					) : (
-						<p className="text-center">No posts found</p>
-					)}
-				</>
-			)}
-		</>
+		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+			{[...allPost].sort(()=>0.5 - Math.random()).map((post) => {
+				return (
+					<SinglePost
+						key={post._id}
+						caption={post.caption}
+						image={post.image}
+						location={post.location}
+						createdAt={post.createdAt}
+					/>
+				)
+			})}
+		</div>
 	)
 }
 
-export default AllPosts;
+export default Explore

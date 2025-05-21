@@ -3,23 +3,17 @@ import jwt from "jsonwebtoken";
 dotenv.config()
 const authMiddleware = async (req, res, next) => {
 	try {
-		if (!req.headers.authorization) {
+		const token = req.headers.authorization.split(" ")[1] || req.cookies.accessToken;
+		if (!token || token === "undefined") {
 			return res.status(401).json({
-				message: `Unauthorized access! No authorization header found!!!`,
+				message: `⚠️ Unauthorized access! No token provided!!!`,
 				success: false
 			});
 		}
-		const token = req.headers.authorization.split(" ")[1];
-		if (!token) {
-			return res.status(401).json({
-				message: `Unauthorized access! No token provided!!!`,
-				success: false
-			});
-		}
-		jwt.verify(token, process.env.JWT_SECRET_KEY, (error, decoded) => {
+		jwt.verify(token, process.env.JWT_SECRET_KEY_ACCESS_TOKEN, (error, decoded) => {
 			if (error) {
 				return res.status(401).json({
-					message: error,
+					message: `⚠️ ${error.message}`,
 					success: false
 				});
 			}
@@ -28,7 +22,7 @@ const authMiddleware = async (req, res, next) => {
 		})
 	} catch (error) {
 		return res.status(502).json({
-			message: `Error while verifying the token: ${error.message}`,
+			message: `⚠️ Error while verifying the token: ${error.message}`,
 			success: false
 		})
 	}

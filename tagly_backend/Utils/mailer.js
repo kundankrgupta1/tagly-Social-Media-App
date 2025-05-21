@@ -1,6 +1,9 @@
 import dotenv from "dotenv"
 import nodemailer from "nodemailer";
+import hbs from "nodemailer-express-handlebars"
+import path from "path"
 dotenv.config()
+
 const sendEmail = nodemailer.createTransport({
 	host: process.env.SMTP_HOST,
 	port: process.env.SMTP_PORT,
@@ -11,5 +14,31 @@ const sendEmail = nodemailer.createTransport({
 	}
 })
 
-export default sendEmail;
+sendEmail.use(
+	"compile",
+	hbs({
+		viewEngine: {
+			extname: ".hbs",
+			defaultLayout: false,
+		},
+		viewPath: path.resolve("views"),
+		extName: ".hbs",
+	})
+)
 
+const sendOtp = async (email, otp, purpose, username) => {
+	console.log("username", username);
+	
+	await sendEmail.sendMail({
+		to: email,
+		subject: `otp for ${purpose}`,
+		template: "otp",
+		context: {
+			otp: otp,
+			purpose: purpose,
+			username: username
+		},
+	})
+}
+
+export default sendOtp

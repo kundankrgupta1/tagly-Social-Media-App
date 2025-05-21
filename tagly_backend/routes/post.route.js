@@ -8,7 +8,7 @@ const postRoutes = Router();
 postRoutes.get("/", authMiddleware, getAllPosts)
 postRoutes.get("/post/:postId", authMiddleware, getSinglePost);
 postRoutes.post("/post", authMiddleware, upload.single("image"), createPost);
-postRoutes.put("post/:postId", authMiddleware, updatePost);
-postRoutes.delete("post/:postId", authMiddleware, postDelete);
+postRoutes.put("/post/:postId", authMiddleware, updatePost);
+postRoutes.delete("/post/:postId", authMiddleware, postDelete);
 
 export default postRoutes;

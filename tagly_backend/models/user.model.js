@@ -30,22 +30,6 @@ const userSchema = mongoose.Schema(
 			default: "",
 			maxLength: 160,
 		},
-		followers: [{
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "User",
-		}],
-		following: [{
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "User",
-		}],
-		followersCount: {
-			type: Number,
-			default: 0
-		},
-		followingCount: {
-			type: Number,
-			default: 0
-		},
 		isVerified: {
 			type: Boolean,
 			default: false,

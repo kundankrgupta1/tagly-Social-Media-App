@@ -5,6 +5,7 @@ import Profile from '../auth/Profile'
 import PrivateRoute from './PrivateRoute'
 import EditProfile from '../auth/EditProfile'
 import CreatePost from '../Posts/CreatePost'
+import Explore from '../Posts/Explore'
 const AllRoutes = () => {
 	return (
 		<div>
@@ -13,6 +14,11 @@ const AllRoutes = () => {
 				<Route path="/" element={
 					<PrivateRoute>
 						<Home />
+					</PrivateRoute>
+				} />
+				<Route path="/explore" element={
+					<PrivateRoute>
+						<Explore />
 					</PrivateRoute>
 				} />
 				<Route path="/api/v1/user/profile/:_id" element={

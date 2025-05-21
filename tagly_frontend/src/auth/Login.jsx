@@ -26,8 +26,6 @@ const Login = () => {
 		if (!otpSent) {
 			try {
 				const res = await axios.post(`${SERVER_URI}/login`, { email, password });
-				console.log(res.data);
-
 				if (res.data.success) {
 					setIsLoading(false);
 					setMessage(res.data.message);
@@ -41,7 +39,6 @@ const Login = () => {
 					}
 				}, 2000);
 			} catch (error) {
-				console.log(error)
 				setIsLoading(false);
 				if (error.message === "Network Error") {
 					setError(error.message)
@@ -73,12 +70,12 @@ const Login = () => {
 					setIsLoading(false);
 					setPopup(true);
 					setMessage(res.data.message);
-					setToken(res.data.token);
+					setToken(res.data.tokens.accessToken);
 					setLoggedInUser(res.data.user._id);
 					setProfilePicture(res.data.user.profilePicture);
 					setUsername(res.data.user.username);
 					setIsAuth(true);
-					localStorage.setItem("token", res.data.token);
+					localStorage.setItem("token", res.data.tokens.accessToken);
 					localStorage.setItem("loggedInUser", res.data.user._id);
 					localStorage.setItem("profilePicture", res.data.user.profilePicture);
 					localStorage.setItem("username", res.data.user.username);

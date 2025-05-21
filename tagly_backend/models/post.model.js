@@ -11,6 +11,10 @@ const postSchema = new mongoose.Schema(
 			type: String,
 			required: true
 		},
+		mediaPublicId: {
+			type: String,
+			required: true
+		},
 		location: {
 			type: String,
 			required: true,
@@ -21,18 +25,6 @@ const postSchema = new mongoose.Schema(
 			required: true,
 			trim: true
 		},
-		likes: {
-			type: Number,
-			default: 0
-		},
-		comment: [
-			{
-				_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-				comment: { type: String, trim: true },
-				createdAt: { type: Date, default: Date.now }
-			}
-		],
-
 	}, { timestamps: true }
 )
 

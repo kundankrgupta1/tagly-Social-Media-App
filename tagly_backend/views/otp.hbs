@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <body style="margin: 0; padding: 40px; background-color: #f0f0f0; font-family: Arial, sans-serif;">
+    <table align="center" width="100%" cellspacing="0" cellpadding="0" border="0">
+      <tr>
+        <td align="center">
+          <table width="700" cellpadding="20" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px;">
+            <tr>
+              <td align="center">
+                <!-- Logo -->
+				<img src="https://raw.githubusercontent.com/kundankrgupta1/media/refs/heads/main/assets/logo.png" alt="Logo" width="95" style="margin-bottom: 8px">
+                <p style="font-size: 14px; color: #555; margin: 5px 0 20px;">Tag your moments, share your story.</p>
+
+                <!-- Username -->
+                <h2 style="font-size: 22px; color: #ef4444; margin: 40px 0 0;">Hello, <span style="text-transform: capitalize;">{{username}}</span></h2>
+
+                <!-- OTP Purpose -->
+                <h3 style="color: #2563eb; font-size: 16px; margin: 20px 0 5px;">Your {{purpose}} OTP</h3>
+                <p style="font-size: 16px; color: #555; margin: 0 0 20px;">
+                  Use the following OTP to complete your {{purpose}}. This OTP is valid for 2 minutes.
+                </p>
+
+                <!-- OTP Box -->
+                <div style="display: inline-block; background-color: #00308f; color: #ffffff; padding: 15px 30px; border-radius: 8px; font-size: 28px; font-weight: bold;">
+                  {{otp}}
+                </div>
+
+                <!-- Footer -->
+                <p style="font-size: 14px; color: red; margin-top: 20px;">
+                  If you didn’t request this OTP, please ignore this email.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

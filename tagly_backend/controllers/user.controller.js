@@ -1,27 +1,20 @@
 import userModel from "../models/user.model.js";
 import generateOTP from "../Utils/generateOTP.js";
-import sendEmail from "../Utils/mailer.js";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import postModel from "../models/post.model.js";
-import uploadOnCloudinary from "../Utils/Cloudinary.js";
+import { uploadOnCloudinary } from "../Utils/Cloudinary.js";
+import Tokens from "../Utils/Tokens.js";
+import sendOtp from "../Utils/mailer.js";
 dotenv.config();
 
-const sendOtp = async (email, otp, purpose) => {
-	await sendEmail.sendMail({
-		to: email,
-		subject: `otp for ${purpose}`,
-		text: `otp send to your email for ${purpose} is ${otp}`,
-	})
-}
 
 const userRegistration = async (req, res) => {
 
 	const { username, email, password } = req.body;
 
 	try {
-		if (!username && !email && !password) {
+		if (!username || !email || !password) {
 			return res.status(400).json({
 				message: "❌ all fileds are required!!!!",
 				success: false
@@ -48,12 +41,12 @@ const userRegistration = async (req, res) => {
 			user.otpPurpose = "Verification";
 			user.isVerified = false;
 
-			await sendOtp(email, otp, "Verification")
+			await sendOtp(email, otp, "Verification", user.username)
 
 			await user.save();
 
 			return res.status(202).json({
-				message: `❌ user found but not verified, otp for Verification is sent on your email Id, your otp is ${otp}`,
+				message: `❌ user found but not verified, otp send for Verification`,
 				success: true,
 			})
 		}
@@ -67,6 +60,7 @@ const userRegistration = async (req, res) => {
 		}
 
 		const otp = generateOTP();
+
 		const otp_expiry = Date.now() + 2 * 60 * 1000;
 
 		const hashPass = await bcrypt.hash(password, 10);
@@ -81,18 +75,18 @@ const userRegistration = async (req, res) => {
 			isVerified: false
 		});
 
-		await sendOtp(email, otp, "Registration")
+		await sendOtp(email, otp, "Registration", username)
 
 		await newUser.save();
 
 		return res.status(201).json({
-			message: `✅ otp send for Registration, your otp is ${otp}`,
+			message: `✅ otp sent for Registration`,
 			success: true,
 		})
 
 	} catch (error) {
 		return res.status(500).json({
-			message: `Error: ${error.message}`,
+			message: `⚠️ Error: ${error.message}`,
 			success: false
 		})
 	}
@@ -101,15 +95,18 @@ const userRegistration = async (req, res) => {
 const userLogin = async (req, res) => {
 	const { email, password } = req.body;
 
-	if (!email || !password) {
-		return res.status(400).json({
-			message: "all fields are required!!!",
-			success: false
-		})
-	}
-
 	try {
-		const user = await userModel.findOne({ email });
+
+		if (!email || !password) {
+			return res.status(400).json({
+				message: "all fields are required!!!",
+				success: false
+			})
+		}
+
+		const user = await userModel.findOne({ email })
+		console.log("user", user);
+
 		if (!user) {
 			return res.status(404).json({
 				message: "User not found, Please register first!!!",
@@ -121,7 +118,7 @@ const userLogin = async (req, res) => {
 
 		if (!checkPass) {
 			return res.status(401).json({
-				message: `password not matched!!!`,
+				message: `❌ Invalid credentials!`,
 				success: false
 			})
 		}
@@ -135,12 +132,12 @@ const userLogin = async (req, res) => {
 			user.otpPurpose = "Verification";
 			user.isVerified = false
 
-			await sendOtp(email, otp, "Verification")
+			await sendOtp(email, otp, "Verification", user.username)
 
 			await user.save();
 
 			return res.status(202).json({
-				message: `user found but not verified otp send for Verification, your otp is ${otp}`,
+				message: `user found but not verified otp send for Verification`,
 				success: true,
 			})
 		}
@@ -152,12 +149,12 @@ const userLogin = async (req, res) => {
 		user.otp_expiry = otp_expiry;
 		user.otpPurpose = "Login";
 
-		await sendOtp(email, otp, "Login")
+		await sendOtp(email, otp, "Login", user.username)
 
 		await user.save();
 
 		return res.status(202).json({
-			message: `otp for Login, your otp is ${otp} valid for 10 min.`,
+			message: `otp for Login, your otp is valid for 2 min.`,
 			success: true
 		})
 
@@ -183,7 +180,7 @@ const verifyOtp = async (req, res) => {
 
 		if (user.otp !== otp) {
 			return res.status(401).json({
-				message: "Invalid OTP",
+				message: "Invalid OTP not match",
 				success: false
 			})
 		}
@@ -202,10 +199,25 @@ const verifyOtp = async (req, res) => {
 		user.otp_expiry = undefined;
 		user.otpPurpose = undefined;
 
-		let token;
+		let accessToken, refreshToken;
 		if (otpPurpose === "Login") {
-			token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET_KEY, { expiresIn: "1d" });
+			accessToken = Tokens.generateAccessToken({ _id: user._id });
+			refreshToken = Tokens.generateRefreshToken({ _id: user._id });
 		}
+
+		res.cookie("accessToken", accessToken, {
+			httpOnly: true,
+			sameSite: "none",
+			secure: true,
+			maxAge: 24 * 60 * 60 * 1000
+		})
+
+		res.cookie("refreshToken", refreshToken, {
+			httpOnly: true,
+			sameSite: "none",
+			secure: true,
+			maxAge: 7 * 24 * 60 * 60 * 1000
+		})
 
 		await user.save();
 
@@ -213,7 +225,7 @@ const verifyOtp = async (req, res) => {
 			message: `${otpPurpose} successful!`,
 			success: true,
 			loginRequired: otpPurpose === "Login" ? false : true,
-			token: otpPurpose === "Login" ? token : undefined,
+			tokens: otpPurpose === "Login" ? { "accessToken": accessToken, "refreshToken": refreshToken } : undefined,
 			user: otpPurpose === "Login" ? { _id: user._id, username: user.username, email: user.email, profilePicture: user.profilePicture } : undefined
 		})
 
@@ -223,6 +235,59 @@ const verifyOtp = async (req, res) => {
 			success: false
 		})
 	}
+}
+
+
+const refreshTokenRoute = async (req, res) => {
+	const { _id } = req.user;
+	try {
+		const user = await userModel.findById(_id);
+
+		if (!user) {
+			return res.status(404).json({
+				message: "User not found!",
+				success: false
+			});
+		}
+
+		const newAccessToken = Tokens.generateAccessToken({ _id: user._id });
+
+		res.cookie("accessToken", newAccessToken, {
+			httpOnly: true,
+			sameSite: "none",
+			secure: true,
+			maxAge: 24 * 60 * 60 * 1000
+		})
+
+		res.status(200).json({
+			message: "New access token generated successfully!",
+			success: true,
+			token: newAccessToken
+		})
+
+	} catch (error) {
+		return res.status(500).json({
+			message: `⚠️ Error: ${error.message}`,
+			success: false
+		});
+	}
+}
+
+const userLogout = async (req, res) => {
+	res.clearCookie("accessToken", {
+		httpOnly: true,
+		sameSite: "none",
+		secure: true,
+	})
+	res.clearCookie("refreshToken", {
+		httpOnly: true,
+		sameSite: "none",
+		secure: true,
+	})
+	res.status(200).json({
+		message: "Logout successfully!",
+		success: true
+	})
 }
 
 const getUser = async (req, res) => {
@@ -235,11 +300,11 @@ const getUser = async (req, res) => {
 				success: false
 			})
 		}
+
 		const totalPost = await postModel.find({ userId: _id })
 		const postLength = totalPost.length;
 
 		return res.status(200).json({
-			message: `user found successfully!`,
 			success: true,
 			data: {
 				_id: user._id,
@@ -276,8 +341,6 @@ const updateProfile = async (req, res) => {
 			})
 		}
 
-		// let cloudinaryURL = null;
-
 		if (req.file) {
 			const allowed = ["image/png", "image/jpeg", "image/jpg"];
 
@@ -300,7 +363,7 @@ const updateProfile = async (req, res) => {
 
 		if (username) user.username = username;
 		if (bio) user.bio = bio;
-		
+
 		await user.save();
 
 		return res.status(200).json({
@@ -317,4 +380,4 @@ const updateProfile = async (req, res) => {
 	}
 }
 
-export { userRegistration, userLogin, verifyOtp, getUser, updateProfile };
+export { userRegistration, userLogin, verifyOtp, refreshTokenRoute, userLogout, getUser, updateProfile };
