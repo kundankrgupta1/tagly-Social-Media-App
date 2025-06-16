@@ -5,9 +5,8 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { BiSolidError } from "react-icons/bi";
 import Loading from "./Components/Loading";
-export const SERVER_URI = "http://localhost:3000";
-// export const SERVER_URI = "https://tagly-backend.onrender.com";
-
+import axiosInstance from "./utils/axiosInstance";
+// const baseURL = "https://tagly-backend.onrender.com";
 const App = () => {
 	const location = useLocation();
 	const hidePaths = ["/api/v1/user/auth"]
@@ -20,7 +19,7 @@ const App = () => {
 	const checkServer = async () => {
 		setIsLoading(true);
 		try {
-			const res = await axios.get(`${SERVER_URI}/health-check`);
+			const res = await axiosInstance.get(`/health-check`);
 			if (res.status === 200) {
 				setIsLoading(false);
 				setServerRunning(true);
@@ -30,7 +29,6 @@ const App = () => {
 			setServerRunning(false);
 			setIsLoading(false);
 			setServerMessage(error.message);
-			console.log(error);
 		}
 	}
 

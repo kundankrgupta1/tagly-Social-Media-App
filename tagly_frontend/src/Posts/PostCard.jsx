@@ -4,11 +4,11 @@ import { MdDelete, MdEdit } from "react-icons/md";
 import { FiSend } from "react-icons/fi";
 import { ContextAPI } from "../context/ContextProvider";
 import { Link } from "react-router-dom";
-import { calculateTimeAgo } from "../Components/Time";
+import { calculateTimeAgo } from "../utils/Time";
 
 const PostCard = ({ _id, userId, caption, image, location, createdAt, handleDelete }) => {
 
-	const { loggedInUser, token } = useContext(ContextAPI)
+	const { user } = useContext(ContextAPI)
 	const postTime = calculateTimeAgo(createdAt)
 	const [visibleButton, setVisibleButton] = useState(false)
 	const [comments, setComments] = useState("")
@@ -23,7 +23,6 @@ const PostCard = ({ _id, userId, caption, image, location, createdAt, handleDele
 
 	const handleCommentSubmit = (e) => {
 		e.preventDefault()
-		console.log("comments", comments)
 	}
 
 	useEffect(() => {
@@ -52,7 +51,7 @@ const PostCard = ({ _id, userId, caption, image, location, createdAt, handleDele
 								</Link>
 								<span>•</span>
 								<p className="text-xs font-medium text-gray-400">{postTime}</p>
-								{loggedInUser !== userId?._id ?
+								{user?._id !== userId?._id ?
 									<>
 										<span>•</span>
 										<button
@@ -69,7 +68,7 @@ const PostCard = ({ _id, userId, caption, image, location, createdAt, handleDele
 							<p className="text-xs">{location}</p>
 						</div>
 					</div>
-					{loggedInUser === userId?._id && <div className="flex gap-3">
+					{user?._id === userId?._id && <div className="flex gap-3">
 						<button className="text-2xl"><MdEdit /></button>
 						<button className="text-2xl" onClick={() => handleDelete(_id)}><MdDelete /></button>
 					</div>}

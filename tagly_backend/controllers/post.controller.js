@@ -2,6 +2,8 @@ import postModel from "../models/post.model.js";
 import userModel from "../models/user.model.js";
 import { uploadOnCloudinary } from "../Utils/Cloudinary.js";
 import { cloudinary } from "../Utils/Cloudinary.js";
+import { handleError, handleSuccess } from "../Utils/responseHandler.js";
+// import redisClient from "../Utils/redisClient.js";
 
 const createPost = async (req, res) => {
 	const { _id } = req.user;
@@ -9,28 +11,13 @@ const createPost = async (req, res) => {
 
 	try {
 		const user = await userModel.findById(_id);
-		if (!user) {
-			return res.status(404).json({
-				message: "User not found!!!, Login first!!!",
-				success: false
-			})
-		}
+		if (!user) return handleError(res, 404, "User not found!!!, Login first!!!");
 
-		if (!location || !caption) {
-			return res.status(400).json({
-				message: "all fields are required",
-				success: false
-			})
-		}
+		if (!location || !caption) return handleError(res, 400, "all fields are required");
 
 		const filePath = req.file?.path;
 
-		if (!filePath) {
-			return res.status(501).json({
-				message: "File is required",
-				success: false
-			})
-		}
+		if (!filePath) return handleError(res, 501, "File is required!!!");
 
 		const cloudinaryURL = await uploadOnCloudinary(filePath)
 
@@ -60,15 +47,7 @@ const createPost = async (req, res) => {
 			}
 		*/
 
-		console.log("cloudinaryURL", cloudinaryURL);
-
-
-		if (!cloudinaryURL?.url) {
-			return res.status(501).json({
-				message: "getting error while uploading",
-				success: false
-			})
-		}
+		if (!cloudinaryURL?.url) return handleError(res, 501, "getting error while uploading...");
 
 		const newPost = new postModel({
 			userId: _id,
@@ -79,17 +58,10 @@ const createPost = async (req, res) => {
 		})
 
 		await newPost.save();
-
-		return res.status(200).json({
-			message: "Post created successfully",
-			success: true
-		})
+		// await redisClient.del("allPosts");
+		return handleSuccess(res, 201, "✅ Post created Successfully!!!")
 	} catch (error) {
-		return res.status(500).json({
-			message: "getting error, while creating the post. Please try again later",
-			error: error.message,
-			success: false
-		})
+		return handleError(res, 500, `⚠️ Error: ${error.message}`)
 	}
 }
 
@@ -97,25 +69,29 @@ const getAllPosts = async (req, res) => {
 	const { _id } = req.user;
 	try {
 		const user = await userModel.findById(_id).select("-password");
-		if (!user) {
-			return res.status(404).json({
-				message: "user not found",
-				success: false
-			})
-		}
-		const allPost = await postModel.find().populate("userId", "_id username profilePicture");
-		return res.status(201).json({
-			message: "posts fetched success",
-			success: true,
-			allPost
-		})
+		if (!user) return handleError(res, 401, "user not found!!!");
 
+		// commented becuase of redisMiddleware, if not use middleware then uncomment this and use it
+		// const cachedData = await redisClient.get("allPosts");
+
+		// if (cachedData) {
+		// 	return res.status(200).json({
+		// 		message: "posts fetched success",
+		// 		success: true,
+		// 		allPost: JSON.parse(cachedData)
+		// 	});
+		// }
+
+
+		const allPost = await postModel.find().populate("userId", "_id username profilePicture");
+
+		// await redisClient.setEx("allPosts", 3600, JSON.stringify(allPost));
+
+		// await redisClient.setEx(res.locals.cacheKey || "post:all", 3600, JSON.stringify(allPost));
+
+		return handleSuccess(res, 200, "", { allPost });
 	} catch (error) {
-		console.log("error from get all posts", error);
-		return res.status(502).json({
-			message: `Error: ${error.message}`,
-			success: false
-		})
+		return handleError(res, 500, `⚠️ Error: ${error.message}`);
 	}
 }
 
@@ -126,20 +102,11 @@ const updatePost = async (req, res) => {
 
 	try {
 		const user = await userModel.findById(_id);
-		if (!user) {
-			return res.status(404).json({
-				message: "User not found!!!, Login first!!!",
-				success: false
-			})
-		}
+		if (!user) return handleError(res, 404, "User not found!!!, Login first!!");
+
 		const post = await postModel.findById(postId);
 
-		if (!post) {
-			return res.status(404).json({
-				message: "Post not found!!!",
-				success: false
-			})
-		}
+		if (!post) return handleError(res, 404, "Post not found!!!");
 
 		post.image = image;
 		post.location = location;
@@ -147,17 +114,11 @@ const updatePost = async (req, res) => {
 		post.updatedAt = Date.now();
 		await post.save();
 
-		return res.status(200).json({
-			message: "Post updated successfully",
-			success: true
-		})
-
+		// await redisClient.del("allPosts");
+		// await redisClient.del(`post:${postId}`);
+		return handleSuccess(res, 200, "✅ Post Updated Successfully!!!")
 	} catch (error) {
-		return res.status(500).json({
-			message: "getting error, while updating the post. Please try again later",
-			error: error.message,
-			success: false
-		})
+		return handleError(res, 500, `⚠️ Error: ${error.message}`);
 	}
 }
 
@@ -166,27 +127,12 @@ const postDelete = async (req, res) => {
 	const { postId } = req.params;
 	try {
 		const user = await userModel.findById(_id);
-		if (!user) {
-			return res.status(404).json({
-				message: "User not found!!!, Login first!!!",
-				success: false
-			})
-		}
+		if (!user) return handleError(res, 404, "User not found!!!, Login first!!!!");
 
 		const post = await postModel.findById(postId);
-		if (!post) {
-			return res.status(404).json({
-				message: "Post not found!!!",
-				success: false
-			})
-		}
+		if (!post) return handleError(res, 404, "Post not found!!!");
 
-		if (post.userId.toString() !== user._id.toString()) {
-			return res.status(401).json({
-				message: "You are not authorized to delete this post",
-				success: false
-			})
-		}
+		if (post.userId.toString() !== user._id.toString()) return handleError(res, 500, "You are not allowed to delete the post!!!");
 
 		if (post?.mediaPublicId) {
 			await cloudinary.uploader.destroy(post?.mediaPublicId);
@@ -194,17 +140,12 @@ const postDelete = async (req, res) => {
 
 		await postModel.findByIdAndDelete(postId);
 
-		return res.status(200).json({
-			message: "Post deleted successfully",
-			success: true
-		})
+		// await redisClient.del("allPosts");
+		// await redisClient.del(`post:${postId}`);
 
+		return handleSuccess(res, 200, "✅ Post Deleted Successfully!!!")
 	} catch (error) {
-		return res.status(500).json({
-			message: "getting error, while deleting the post. Please try again later",
-			error: error.message,
-			success: false
-		})
+		return handleError(res, 500, `⚠️ Error: ${error.message}`);
 	}
 }
 
@@ -213,33 +154,30 @@ const getSinglePost = async (req, res) => {
 	const { _id } = req.user;
 	try {
 		const user = await userModel.findById(_id);
-		if (!user) {
-			return res.status(404).json({
-				message: "User not found!!!, Login first!!!",
-				success: false
-			})
-		}
+		if (!user) return handleError(res, 404, "User not found!!!, Login first!!");
+
+		// commented becuase of redisMiddleware, if not use middleware then uncomment this and use it
+		// const cacheKey = `post:${postId}`;
+		// const cachedPost = await redisClient.get(cacheKey);
+
+		// if (cachedPost) {
+		// 	return res.status(200).json({
+		// 		message: "Post found successfully from cache",
+		// 		success: true,
+		// 		post: JSON.parse(cachedPost)
+		// 	})
+		// }
 
 		const post = await postModel.findById(postId);
 
-		if (!post) {
-			return res.status(404).json({
-				message: "Post not found!!!",
-				success: false
-			})
-		}
+		if (!post) return handleError(res, 404, "Post not found!!!");
 
-		return res.status(200).json({
-			message: "Post found successfully",
-			success: true,
-			post
-		})
+		// await redisClient.setEx(cacheKey, 3600, JSON.stringify(post));
+		// await redisClient.setEx(res.locals.cacheKey || `post:${postId}`, 3600, JSON.stringify(post));
 
+		return handleSuccess(res, 200, "", { post })
 	} catch (error) {
-		return res.status(500).json({
-			message: `getting error, while getting the post. Please try again later ${error.message}`,
-			success: false
-		})
+		return handleError(res, 500, `⚠️ Error: ${error.message}`);
 	}
 }
 

@@ -12,9 +12,7 @@ const Accounts = () => {
 				<div className="flex items-center justify-center mb-4">
 					<Logo />
 				</div>
-				{
-					!toggle ? <><Login /></> : <><Register /></>
-				}
+				{!toggle ? <><Login /></> : <><Register /></>}
 				<div>
 					{!toggle ?
 						<p className="text-center">

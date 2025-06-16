@@ -1,6 +1,7 @@
-import commentModel from "../models/comment.model";
-import postModel from "../models/post.model";
-import userModel from "../models/user.model";
+import commentModel from "../models/comment.model.js";
+import postModel from "../models/post.model.js";
+import userModel from "../models/user.model.js";
+import { handleError, handleSuccess } from "../Utils/responseHandler.js";
 
 
 const getAllComment = async (req, res) => {
@@ -11,35 +12,14 @@ const getAllComment = async (req, res) => {
 		const user = await userModel.findById(_id);
 		const postExist = await postModel.findById(postId)
 
-		if (!user) {
-			return res.status(401).json({
-				message: "User not found",
-				success: false
-			})
-		}
-		if (!postExist) {
-			return res.status(404).json({
-				message: "Post not found",
-				success: false
-			})
-		}
+		if (!user) return handleError(res, 404, "User not found!!!, Login first!!");
+		if (!postExist) return handleError(res, 404, "Post not found!!!");
 
 		const allComment = await commentModel.find({ postId: postExist._id }).populate("userId", "_id username profilePicture").limit(10).sort({ createdAt: -1 });
 
-		return res.status(201).json({
-			success: true,
-			message: "Comment fetched successfully",
-			allComment
-		})
-
+		return handleSuccess(res, 200, "✅ Comment Fetched Successfully!!!", { allComment })
 	} catch (error) {
-
-		return res.status(500).json({
-			message: "Error while fetching comment",
-			error: error.message,
-			success: false
-		})
-
+		return handleError(res, 500, `⚠️ Error: ${error.message}`);
 	}
 }
 
@@ -51,18 +31,8 @@ const postComment = async (req, res) => {
 		const user = await userModel.findById(_id);
 		const postExist = await postModel.findById(postId)
 
-		if (!user) {
-			return res.status(401).json({
-				message: "User not found",
-				success: false
-			})
-		}
-		if (!postExist) {
-			return res.status(404).json({
-				message: "Post not found",
-				success: false
-			})
-		}
+		if (!user) return handleError(res, 404, "User not found!!!, Login first!!");
+		if (!postExist) return handleError(res, 404, "Post not found!!!");
 
 		const newComment = new commentModel({
 			postId: postExist._id,
@@ -71,24 +41,12 @@ const postComment = async (req, res) => {
 		})
 
 		await newComment.save();
-
-		return res.status(201).json({
-			message: "Comment added successfully",
-			comment: newComment,
-			success: true
-		})
-
+		return handleSuccess(res, 201, "✅ Comment Added Successfully!!!", { comment: newComment })
 	} catch (error) {
+		return handleError(res, 500, `⚠️ Error: ${error.message}`);
 
-		return res.status(500).json({
-			message: "Error while adding comment",
-			error: error.message,
-			success: false
-		})
 	}
 }
-
-
 
 const editComment = async (req, res) => {
 	const { _id } = req.user;
@@ -97,50 +55,19 @@ const editComment = async (req, res) => {
 	try {
 		const user = await userModel.findById(_id);
 		const commentExist = await commentModel.findById(commentId)
-		const postExist = await postModel.exists({_id: postId})
+		const postExist = await postModel.exists({ _id: postId })
 
-		if (!user) {
-			return res.status(401).json({
-				message: "User not found",
-				success: false
-			})
-		}
-		if (!commentExist) {
-			return res.status(404).json({
-				message: "comment not found",
-				success: false
-			})
-		}
+		if (!user) return handleError(res, 404, "User not found!!!, Login first!!");
+		if (!commentExist) return handleError(res, 404, "Comment not found!!!");
 
-		if (!postExist) {
-			return res.status(404).json({
-				message: "Post not found",
-				success: false
-			})
-		}
+		if (!postExist) return handleError(res, 404, "Post not found!!!");
 
-		if (commentExist.userId.toString() !== user._id.toString()) {
-			return res.status(401).json({
-				message: "Unauthorized, you can't update this comment",
-				success: false
-			})
-		}
+		if (commentExist.userId.toString() !== user._id.toString()) return handleError(res, 401, "You are not allowed!!!");
 
 		await commentModel.findByIdAndUpdate(commentId, { comment: newComment }, { new: true });
-
-		return res.status(201).json({
-			message: "Comment updated successfully",
-			comment: commentExist,
-			success: true
-		})
-
+		return handleSuccess(res, 200, "✅ Comment updated Successfully!!!", { comment: commentExist })
 	} catch (error) {
-
-		return res.status(500).json({
-			message: "Error while updating comment",
-			error: error.message,
-			success: false
-		})
+		return handleError(res, 500, `⚠️ Error: ${error.message}`);
 	}
 }
 
@@ -154,49 +81,18 @@ const deleteComment = async (req, res) => {
 		const postExist = await postModel.findById(postId)
 
 
-		if (!user) {
-			return res.status(401).json({
-				message: "User not found",
-				success: false
-			})
-		}
-		if (!commentExist) {
-			return res.status(404).json({
-				message: "comment not found",
-				success: false
-			})
-		}
+		if (!user) return handleError(res, 404, "User not found!!!, Login first!!");
+		if (!commentExist) return handleError(res, 404, "Comment not found!!!");
 
-		if (!postExist) {
-			return res.status(404).json({
-				message: "Post not found",
-				success: false
-			})
-		}
+		if (!postExist) return handleError(res, 404, "Post not found!!!");
 
-		if (commentExist.userId.toString() !== user._id.toString()) {
-			return res.status(401).json({
-				message: "Unauthorized, you can't update this comment",
-				success: false
-			})
-		}
+		if (commentExist.userId.toString() !== user._id.toString()) return handleError(res, 401, "Your not allowed to this actions!!!");
 
 		await commentModel.findByIdAndDelete(commentId);
 
-		return res.status(201).json({
-			message: "Comment deleted successfully",
-			success: true
-		})
-
-
+		return handleSuccess(res, 200, "✅ Comment Deleted Successfully!!!")
 	} catch (error) {
-
-		return res.status(500).json({
-			message: "Error while deleting comment",
-			error: error.message,
-			success: false
-		})
-
+		return handleError(res, 500, `⚠️ Error: ${error.message}`);
 	}
 
 }

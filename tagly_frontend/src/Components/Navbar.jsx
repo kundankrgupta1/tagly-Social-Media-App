@@ -10,7 +10,7 @@ import { FaRegUser } from "react-icons/fa";
 
 const Navbar = () => {
 	const navigate = useNavigate();
-	const { isAuth, loggedInUser, profilePicture, username } = useContext(ContextAPI);
+	const { isAuth, user } = useContext(ContextAPI);
 	return (
 		<>
 			<div className="px-4 md:px-8 py-3 flex items-center justify-between border-b mb-4"
@@ -35,10 +35,10 @@ const Navbar = () => {
 						onClick={() => navigate("/explore")}
 					/>
 					{isAuth ?
-						<Link to={`/api/v1/user/profile/${loggedInUser}`}>
+						<Link to={`/api/v1/user/profile/${user._id}`}>
 							<Button
-								img={profilePicture ? profilePicture : "https://tinyurl.com/5paj2hrp"}
-								text={username}
+								img={user?.profilePicture ? user?.profilePicture : "https://tinyurl.com/5paj2hrp"}
+								text={user?.username}
 								icon={<FaRegUser size={"1.5rem"} />}
 								iconStyle={"block md:hidden"}
 								imgStyle={"hidden md:block"}

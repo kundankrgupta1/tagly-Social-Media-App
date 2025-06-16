@@ -1,6 +1,6 @@
 import { IoChevronBackOutline } from "react-icons/io5";
 import { IoMdClose } from "react-icons/io";
-import { calculateTimeAgo } from "../Components/Time";
+import { calculateTimeAgo } from "../utils/Time";
 import { ContextAPI } from "../context/ContextProvider";
 import { useContext, useEffect, useState } from "react";
 import { FaRegComment, FaRegHeart } from "react-icons/fa";
@@ -8,7 +8,7 @@ import { FiSend } from "react-icons/fi";
 import { MdDelete, MdEdit } from "react-icons/md";
 
 const SinglePost = ({ userData, setSinglePostView, handleDelete }) => {
-	const { loggedInUser } = useContext(ContextAPI);
+	const { user } = useContext(ContextAPI);
 	const [visibleButton, setVisibleButton] = useState(false);
 	const [comments, setComments] = useState("");
 	const post = JSON.parse(localStorage.getItem("singlePost"));
@@ -20,7 +20,6 @@ const SinglePost = ({ userData, setSinglePostView, handleDelete }) => {
 
 	const handleCommentSubmit = (e) => {
 		e.preventDefault();
-		console.log("comments", comments);
 	};
 
 	useEffect(() => {
@@ -54,7 +53,7 @@ const SinglePost = ({ userData, setSinglePostView, handleDelete }) => {
 							</p>
 							<span>•</span>
 							<p className="text-xs font-medium text-gray-400">{postTime}</p>
-							{loggedInUser !== userData?._id && (
+							{user?._id !== userData?._id && (
 								<>
 									<span>•</span>
 									<button className="text-xs font-medium" onClick={() => console.log("Follow kar liya h")}>
@@ -98,7 +97,7 @@ const SinglePost = ({ userData, setSinglePostView, handleDelete }) => {
 									</p>
 									<span>•</span>
 									<p className="text-xs font-medium text-gray-400">{postTime}</p>
-									{loggedInUser !== userData?._id && (
+									{user?._id !== userData?._id && (
 										<>
 											<span>•</span>
 											<button className="text-xs font-medium text-white" onClick={() => console.log("Follow kar liya h")}>
@@ -128,7 +127,7 @@ const SinglePost = ({ userData, setSinglePostView, handleDelete }) => {
 								<button><FaRegComment /></button>
 								<button><FiSend /></button>
 							</div>
-							{loggedInUser === userData?._id && userData?._id === post?.userId && <div className="flex gap-3">
+							{user?._id === userData?._id && userData?._id === post?.userId && <div className="flex gap-3">
 								<button className="text-2xl"><MdEdit /></button>
 								<button className="text-2xl"
 									onClick={() => { setSinglePostView(false); handleDelete(post?._id) }}

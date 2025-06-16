@@ -1,41 +1,39 @@
 import { useContext, useEffect, useRef, useState } from "react"
 import { ContextAPI } from "../context/ContextProvider"
-import axios from "axios";
-import { SERVER_URI } from "../App";
 import Button from "../Components/Button";
 import { FaCheck } from "react-icons/fa";
 import { Input } from "../Components/InputFeild";
 import { useNavigate, useParams } from "react-router-dom";
 import Loading from "../Components/Loading";
 import { CgClose } from "react-icons/cg";
+import axiosInstance from "../utils/axiosInstance";
+import useToast from "../Hooks/useToast";
+import Toast from "../Components/Toast";
 
 const EditProfile = () => {
+	const { toast, showToast } = useToast();
 	const _id = useParams();
 	const navigate = useNavigate();
-	const { loggedInUser, token } = useContext(ContextAPI);
+	const { user } = useContext(ContextAPI);
 	const imageRef = useRef(null);
+	const inputRef = useRef(null);
 	const [userData, setUserData] = useState(null);
 	const [updateProfilePicture, setUpdateProfilePicture] = useState(null);
 	const [updataUsername, setUpdataUsername] = useState("");
 	const [updataBio, setUpdataBio] = useState("");
-	const [popup, setPopup] = useState(false);
-	const [message, setMessage] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState("");
 
 	const fetchUser = async () => {
 		try {
-			const res = await axios.get(`${SERVER_URI}/user/${loggedInUser}`, {
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
-			setUserData(res.data.data);
-			setUpdateProfilePicture(res.data.data?.profilePicture || null);
-			setUpdataUsername(res.data.data?.username || "");
-			setUpdataBio(res.data.data?.bio || "");
+			const res = await axiosInstance.get(`/user/${user?._id}`, { withCredentials: true });
+			if (res.status === 200) {
+				setUserData(res.data.data);
+				setUpdateProfilePicture(res.data.data?.profilePicture || null);
+				setUpdataUsername(res.data.data?.username || "");
+				setUpdataBio(res.data.data?.bio || "");
+			}
 		} catch (error) {
-			setError(error.response.data.message);
+			showToast(true, error?.response?.data?.message, "error");
 		}
 	};
 	const updateProfile = async (e) => {
@@ -46,55 +44,32 @@ const EditProfile = () => {
 			if (imageRef.current.files[0]) {
 				const file = imageRef.current.files[0];
 				const allowedExtensions = ["image/jpeg", "image/jpg", "image/png"];
-
 				if (!allowedExtensions.includes(file.type)) {
 					imageRef.current.value = "";
 					setIsLoading(false);
-					setError("❌ Only jpg, jpeg, and png file types are allowed!");
-					setPopup(true);
-					setTimeout(() => {
-						setPopup(false);
-						setError("");
-					}, 2000);
+					showToast(true, "❌ Only jpg, jpeg, and png file types are allowed!", "error");
 					return;
 				}
-
 				formData.append("profilePicture", file);
 			}
 			if (updataUsername.trim()) formData.append("username", updataUsername);
 			if (updataBio.trim()) formData.append("bio", updataBio);
 
-			const res = await axios.put(`${SERVER_URI}/edit/${_id._id}`, formData, {
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "multipart/form-data"
-				},
-			})
+			const res = await axiosInstance.put(`/edit/${_id._id}`, formData, { withCredentials: true });
 			setIsLoading(false);
-			if (res.data.success) {
-				setPopup(true);
-				setMessage(res.data.message);
+			if (res.status === 200) {
+				showToast(true, res.data.message, "success");
 				localStorage.removeItem("profilePicture");
 				localStorage.removeItem("username");
 				localStorage.setItem("profilePicture", res.data.data.profilePicture);
 				localStorage.setItem("username", res.data.data.username);
-			}
-			setTimeout(() => {
-				if (res.data.success) {
-					setPopup(false);
-					setMessage("");
+				setTimeout(() => {
 					navigate(`/api/v1/user/profile/${_id._id}`);
-					window.location.reload();
-				}
-			}, 2000)
+				}, 2000)
+			}
 		} catch (error) {
 			setIsLoading(false);
-			setError(error.response.data.message || "Something went wrong.");
-			setPopup(true);
-			setTimeout(() => {
-				setPopup(false);
-				setError("");
-			}, 2000)
+			showToast(true, error.response.data.message || "Something went wrong.", "error");
 		}
 	}
 
@@ -111,6 +86,7 @@ const EditProfile = () => {
 		fetchUser();
 	}, [])
 
+	useEffect(() => { if (inputRef.current) inputRef.current.focus(); }, [])
 	return (
 		<>
 			<div className="w-2/4 m-auto">
@@ -133,6 +109,7 @@ const EditProfile = () => {
 							/>
 						</div>
 						<Input
+							ref={inputRef}
 							type={"text"}
 							style={"w-2/4"}
 							value={updataUsername}
@@ -162,28 +139,7 @@ const EditProfile = () => {
 
 				</form>
 			</div>
-			{
-				popup &&
-				(
-					<div className="fixed inset-0 flex items-end justify-center bg-black bg-opacity-50">
-						<div
-							className={`transform transition-transform duration-300 ease-in-out ${popup ? 'translate-y-0' : 'translate-y-full'
-								} ${message ? "bg-green-300" : error ? "bg-red-300" : "bg-white"} p-6 shadow-lg rounded-t-lg w-full max-w-md sm:max-w-lg`}
-						>
-							{message && (
-								<div className="w-fit mt-4 bg-green-300 rounded-sm text-black px-3 py-1">
-									<p className="text-center">{message}</p>
-								</div>
-							)}
-							{error && (
-								<div className="w-fit mt-4 bg-red-300 rounded-sm text-black px-3 py-1">
-									<p className="text-center">{error}</p>
-								</div>
-							)}
-						</div>
-					</div>
-				)
-			}
+			{toast?.isOpen && <Toast toast={toast} />}
 		</>
 	)
 }

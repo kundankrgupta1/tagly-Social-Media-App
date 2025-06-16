@@ -1,16 +1,17 @@
-const handleSuccess = (res, data = {}, message, status) => {
+const handleSuccess = (res, status, message, data = {}) => {
 	return res.status(status).json({
 		success: true,
 		message: message,
-		data
+		...data
 	});
 }
 
-const handleError = (res, message, status) => {
+const handleError = (res, status, message, data = {}) => {
 	return res.status(status).json({
 		success: false,
-		message: message
+		message: message,
+		...data
 	});
 }
 
-export default { handleSuccess, handleError };
+export { handleSuccess, handleError };

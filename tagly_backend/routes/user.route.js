@@ -6,7 +6,7 @@ import { upload } from "../middlewares/multer.middleware.js";
 const userRoutes = Router();
 
 userRoutes.post("/reg", userRegistration)
-userRoutes.get("/refresh-token", refreshTokenRoute)
+userRoutes.post("/refresh-token", refreshTokenRoute)
 userRoutes.post("/logout", authMiddleware, userLogout)
 userRoutes.post("/login", userLogin)
 userRoutes.post("/otp", verifyOtp)

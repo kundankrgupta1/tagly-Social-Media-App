@@ -1,5 +1,7 @@
-export const Input = ({ type, value, placeholder, onChange, required = false, style }) => (
+import { forwardRef } from "react";
+export const Input = forwardRef(({ type, value, placeholder, onChange, required = false, style }, ref) => (
 	<input
+		ref={ref}
 		type={type}
 		value={value}
 		placeholder={placeholder}
@@ -7,4 +9,7 @@ export const Input = ({ type, value, placeholder, onChange, required = false, st
 		onChange={onChange}
 		className={`w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${style}`}
 	/>
-);
+));
+
+
+Input.displayName = 'Input'

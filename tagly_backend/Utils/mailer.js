@@ -27,7 +27,6 @@ sendEmail.use(
 )
 
 const sendOtp = async (email, otp, purpose, username) => {
-	console.log("username", username);
 	
 	await sendEmail.sendMail({
 		to: email,

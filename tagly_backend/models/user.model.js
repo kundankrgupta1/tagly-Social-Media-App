@@ -43,7 +43,10 @@ const userSchema = mongoose.Schema(
 		},
 		otp_expiry: {
 			type: Date
-		}
+		},
+		refreshToken: {
+			type: String,
+		},
 	}, { timestamps: true }
 )
 

@@ -1,56 +1,64 @@
 import { useContext, useEffect, useState } from "react"
-import axios from "axios";
 import { ContextAPI } from "../context/ContextProvider"
-import { SERVER_URI } from "../App";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Button from "../Components/Button";
 import { FaUserEdit } from "react-icons/fa";
 import Loading from "../Components/Loading";
 import { IoMdLogOut } from "react-icons/io";
 import SinglePost from "./SinglePost";
+import axiosInstance from "../utils/axiosInstance";
+import Toast from "../Components/Toast";
+import useToast from "../Hooks/useToast";
 
 const Profile = () => {
-	const { token, isAuth, loggedInUser, logout, message, UserLogout } = useContext(ContextAPI)
-	const _id = useParams();
+	const { isAuth, setIsAuth, user } = useContext(ContextAPI)
+	const { _id } = useParams();
+	const navigate = useNavigate();
+	const { toast, showToast } = useToast();
 	const [userData, setUserData] = useState(null);
 	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState("");
 	const [singlePostView, setSinglePostView] = useState(false);
 	const fetchUser = async () => {
 		setIsLoading(true);
 		try {
-			const res = await axios.get(`${SERVER_URI}/user/${_id?._id}`, {
-				headers: {
-					Authorization: `Bearer ${token}`
-				}
-			});
-			if (res.data.success) {
+			const res = await axiosInstance.get(`/user/${_id}`, { withCredentials: true });
+			if (res.status === 200) {
 				setUserData(res.data.data);
 				setIsLoading(false);
 			}
 		} catch (error) {
-			setError(error.response.data.message);
+			showToast(true, error.response.data.message, "error");
 			setIsLoading(false);
 		}
 	}
 
 	const handleDelete = async (postId) => {
-		
 		try {
-			const res = await axios.delete(`${SERVER_URI}/post/${postId}`, {
-				headers: {
-					Authorization: `Bearer ${token}`
-				}
-			})
+			const res = await axiosInstance.delete(`/post/${postId}`, { withCredentials: true })
 			fetchUser();
-			console.log(res.data)
+			if (res.status === 200) {
+				showToast(true, res.data.message, "success");
+			}
 		} catch (error) {
-			console.log(error)
+			showToast(true, error.response.data.message, "error");
 		}
 	}
 
-
-	// console.log("postsData", postsData)
+	const UserLogout = async () => {
+		try {
+			const res = await axiosInstance.post(`/logout`, { withCredentials: true })
+			if (res.status === 200) {
+				showToast(true, res.data.message, "success");
+				setTimeout(() => {
+					localStorage.clear();
+					setIsAuth(false);
+					navigate("/api/v1/user/auth");
+				}, 2000);
+			}
+		} catch (error) {
+			showToast(true, error.response.data.message, "error");
+		}
+	}
 
 	useEffect(() => {
 		fetchUser();
@@ -59,8 +67,7 @@ const Profile = () => {
 	return (
 		<>
 			{isLoading && <div className="flex items-center justify-center h-screen"><Loading text={"Loading..."} /></div>}
-			{error && <h1>{error}</h1>}
-			{!isLoading && !error &&
+			{!isLoading &&
 				(<div className="w-full relative flex justify-center items-center">
 					<div className="m-auto p-2 inter-regular">
 						<div className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-8 md:p-4">
@@ -70,8 +77,8 @@ const Profile = () => {
 							<div className="flex flex-col gap-4">
 								<div className="flex items-center gap-2 md:gap-8">
 									<p className="font-bold text-2xl">{userData?.username}</p>
-									{loggedInUser === userData?._id ?
-										<Link to={`/api/v1/user/edit/${_id?._id}`}>
+									{user?._id === userData?._id ?
+										<Link to={`/api/v1/user/edit/${_id}`}>
 											<Button
 												type="button"
 												icon={<FaUserEdit size={"1.5rem"} />}
@@ -88,11 +95,10 @@ const Profile = () => {
 											/>
 										</>
 									}
-									{loggedInUser === userData?._id && isAuth &&
+									{user?._id === userData?._id && isAuth &&
 										<Button
 											icon={<IoMdLogOut size={"1.5rem"} />}
 											text={"logout"}
-
 											textStyle={"hidden md:inline"}
 											onClick={() => UserLogout()}
 										/>
@@ -136,22 +142,7 @@ const Profile = () => {
 				</div>
 				)
 			}
-			{logout &&
-				(
-					<div className="fixed inset-0 flex items-end justify-center bg-black bg-opacity-50">
-						<div
-							className={`transform transition-transform duration-300 ease-in-out ${logout ? 'translate-y-0' : 'translate-y-full'
-								} ${message && "bg-green-300"} p-6 shadow-lg rounded-t-lg w-full max-w-md sm:max-w-lg`}
-						>
-							{message && (
-								<div className="w-fit mt-4 bg-green-300 rounded-sm text-black px-3 py-1">
-									<p className="text-center">{message}</p>
-								</div>
-							)}
-						</div>
-					</div>
-				)
-			}
+			{toast?.isOpen && <Toast toast={toast} />}
 
 			{singlePostView &&
 				(
@@ -165,4 +156,4 @@ const Profile = () => {
 	)
 }
 
-export default Profile
+export default Profile;

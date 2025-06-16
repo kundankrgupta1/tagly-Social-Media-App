@@ -1,22 +1,22 @@
-import axios from "axios";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { IoIosSend } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import { Input } from "../Components/InputFeild";
 import { ContextAPI } from "../context/ContextProvider";
-import { SERVER_URI } from "../App";
 import Button from "../Components/Button";
 import Loading from "../Components/Loading";
+import axiosInstance from "../utils/axiosInstance";
+import useToast from "../Hooks/useToast";
+import Toast from "../Components/Toast";
 
 const CreatePost = () => {
+	const inputRef = useRef(null);
 	const navigate = useNavigate();
-	const { token } = useContext(ContextAPI);
 	const [caption, setCaption] = useState("");
 	const [location, setLocation] = useState("");
 	const [image, setImage] = useState(null);
 	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState(null);
-	const [message, setMessage] = useState(null);
+	const { toast, showToast } = useToast();
 	const handleCreatePost = async (e) => {
 		e.preventDefault();
 		setIsLoading(true);
@@ -26,30 +26,23 @@ const CreatePost = () => {
 				formData.append("location", location);
 				formData.append("caption", caption);
 				formData.append("image", image);
-
-				const res = await axios.post(`${SERVER_URI}/post`, formData, {
-					headers: {
-						Authorization: `Bearer ${token}`,
-						"Content-Type": "multipart/form-data",
-					}
+				const res = await axiosInstance.post(`/post`, formData, { withCredentials: true });
+				if (res.status === 201) {
+					showToast(true, res.data.message, "success");
+					setTimeout(() => {
+						navigate("/");
+					}, 2000);
 				}
-				);
-				setMessage(res.data.message);
-				setTimeout(() => {
-					setMessage(null);
-					navigate("/");
-				}, 2000);
 			} else {
-				setMessage("Please fill in all fields");
+				showToast(true, "Please fill in all fields", "error");
 			}
 			setIsLoading(false);
 		} catch (error) {
-			console.error("Error:", error);
-			setError(error);
-			setMessage(error.response?.data?.message || "Something went wrong!");
 			setIsLoading(false);
+			showToast(true, error.response?.data?.message || "Something went wrong!", "error");
 		}
 	};
+	useEffect(() => { if (inputRef.current) inputRef.current.focus(); }, [])
 	return (
 		<div className="m-auto md:border md:w-2/4 rounded-lg shadow-xl p-6 relative">
 			<h1 className="text-2xl font-semibold">Create a Post</h1>
@@ -58,6 +51,7 @@ const CreatePost = () => {
 				<div className="flex flex-col">
 					<label className="text-lg font-medium" htmlFor="location">Location</label>
 					<Input
+						ref={inputRef}
 						type="text"
 						placeholder="Add location"
 						value={location}
@@ -95,11 +89,8 @@ const CreatePost = () => {
 				>
 				</Button>
 			</form>
-			{/* message */}
-			{message && <p className="text-md text-green-800 mt-2">{message}</p>}
-			{error && <p className="text-md text-red-600 mt-2">{error.message}</p>}
+			{toast.isOpen && <Toast toast={toast} />}
 		</div>
-		// </div>
 	);
 };
 

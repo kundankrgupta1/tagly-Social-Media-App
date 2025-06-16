@@ -1,54 +1,37 @@
-import { useContext, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import PostCard from "./PostCard"
-import { ContextAPI } from "../context/ContextProvider"
 import Loading from "../Components/Loading"
-import axios from "axios"
-import { SERVER_URI } from "../App"
+import axiosInstance from "../utils/axiosInstance"
+import useToast from "../Hooks/useToast"
+import Toast from "../Components/Toast"
 
 const AllPosts = () => {
-	const { token, UserLogout, setAllPostExplore } = useContext(ContextAPI)
 	const [allPost, setAllPost] = useState([])
 	const [isLoading, setIsLoading] = useState(false)
-	const [error, setError] = useState("")
+	const { toast, showToast } = useToast();
 	const getPosts = async () => {
 		setIsLoading(true)
 		try {
-			const res = await axios.get(`${SERVER_URI}`, {
-				headers: {
-					Authorization: `Bearer ${token}`
-				}
-			})
-			setAllPost(res.data.allPost)
-			setAllPostExplore(res.data.allPost)
+			const res = await axiosInstance.get(`/posts`, { withCredentials: true })
+			if (res.status === 200) {
+				setAllPost(res.data.allPost)
+			}
 			setIsLoading(false)
 		} catch (error) {
 			setIsLoading(false)
-			console.log("error from all post", error)
-			if (error.response.status === 401 && error.response.data.message === "TokenExpiredError: jwt expired") {
-				setError("Session expired, please login again!!!")
-				setIsLoading(false)
-			} else {
-				setError(error.response?.data?.message || "server error!!!")
-			}
-			setTimeout(() => {
-				if (error.response.status === 401 && error.response.data.message === "TokenExpiredError: jwt expired") {
-					UserLogout();
-				}
-			}, 2000)
+			showToast(true, error.response?.data?.message || "server error!!!", "error");
 		}
 	}
 
 	const handleDelete = async (postId) => {
 		try {
-			const res = await axios.delete(`${SERVER_URI}/post/${postId}`, {
-				headers: {
-					Authorization: `Bearer ${token}`
-				}
-			})
-			getPosts();
-			console.log(res.data)
+			const res = await axiosInstance.delete(`/post/${postId}`, { withCredentials: true })
+			if (res.status === 200) {
+				showToast(true, res.data.message, "success");
+				getPosts();
+			}
 		} catch (error) {
-			console.log(error)
+			showToast(true, error.response.data.message, "error");			
 		}
 	}
 
@@ -58,11 +41,9 @@ const AllPosts = () => {
 
 	return (
 		<>
-			{isLoading &&
-				<div className="flex items-center justify-center h-screen"><Loading text="Loading posts..." /></div>
-			}
-			{error && <p>{error}</p>}
-			{!isLoading && !error && (
+			{isLoading && <div className="flex items-center justify-center h-screen"><Loading text="Loading posts..." /></div>}
+			{toast.type === "error" && <Toast toast={toast} />}
+			{!isLoading && (
 				<>
 					{allPost?.length > 0 ? (
 						allPost
@@ -76,6 +57,7 @@ const AllPosts = () => {
 					)}
 				</>
 			)}
+			{toast.isOpen && <Toast toast={toast} />}
 		</>
 	)
 }

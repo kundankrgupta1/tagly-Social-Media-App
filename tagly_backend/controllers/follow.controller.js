@@ -1,39 +1,25 @@
-import followModel from "../models/Follow.model";
-import userModel from "../models/user.model";
+import followModel from "../models/Follow.model.js";
+import userModel from "../models/user.model.js";
+import { handleError, handleSuccess } from "../Utils/responseHandler.js";
 
 const followUser = async (req, res) => {
 	const { _id } = req.user;
 	const { followingId } = req.body;
 	try {
 
-		if (_id === followingId) {
-			return res.status(409).json({
-				message: "you can't follow your self",
-				success: false
-			})
-		}
+		if (_id === followingId) return handleError(res, 409, "You cant follow you'r self!!!");
 
 		const currentLoginedUser = await userModel.findById(_id)
 		const targetUser = await userModel.findById(followingId)
 
-		if (!currentLoginedUser || !targetUser) {
-			return res.status(404).json({
-				message: "user not found",
-				success: false
-			})
-		}
+		if (!currentLoginedUser || !targetUser) return handleError(res, 404, "User not found!!!, Login first!!");
 
 		const alreadyFollowed = await followModel.findOne({
 			followerId: currentLoginedUser._id,
 			followingId: targetUser._id
 		})
 
-		if (alreadyFollowed) {
-			return res.status(409).json({
-				message: "You already followed this user",
-				success: false
-			})
-		}
+		if (alreadyFollowed) return handleError(res, 408, "not allowed!!!");
 
 		const newFollow = new followModel({
 			followerId: currentLoginedUser._id, followingId: targetUser._id
@@ -41,17 +27,10 @@ const followUser = async (req, res) => {
 
 		await newFollow.save();
 
-		return res.status(201).json({
-			message: "follow kar liya",
-			success: true
-		})
+		return handleSuccess(res, 201, "✅ Follow Successfully!!!")
 
 	} catch (error) {
-		return res.status(500).json({
-			message: "Internal Error",
-			error: error,
-			success: fasle
-		})
+		return handleError(res, 500, `⚠️ Error: ${error.message}`);
 	}
 }
 
@@ -63,41 +42,24 @@ const unfollow = async (req, res) => {
 		const currentLoginedUser = await userModel.findById(_id)
 		const targetUser = await userModel.findById(followingId)
 
-		if (!currentLoginedUser || !targetUser) {
-			return res.status(404).json({
-				message: "user not found",
-				success: false
-			})
-		}
+		if (!currentLoginedUser || !targetUser) return handleError(res, 404, "User not found!!!, Login first!!");
 
 		const alreadyFollowed = await followModel.findOne({
 			followerId: currentLoginedUser._id,
 			followingId: targetUser._id
 		})
 
-		if (!alreadyFollowed) {
-			return res.status(401).json({
-				message: "You never followed",
-				success: false
-			})
-		}
+		if (!alreadyFollowed) return handleError(res, 401, "not allowed!!!");
 
 		await followModel.deleteOne({
 			followerId: currentLoginedUser._id,
 			followingId: targetUser._id
 		})
 
-		return res.status(200).json({
-			message: "Unfollow ho gya",
-			success: true
-		})
+		return handleSuccess(res, 200, "✅ unfollowes!!!")
 
 	} catch (error) {
-		return res.status(500).json({
-			message: "Internal error",
-			error: error,
-			success: false
-		})
+		return handleError(res, 500, `⚠️ Error: ${error.message}`);
 	}
 }
 

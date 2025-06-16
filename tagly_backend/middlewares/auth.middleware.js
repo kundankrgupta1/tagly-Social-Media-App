@@ -1,30 +1,18 @@
+import { handleError } from "../Utils/responseHandler.js";
+import Tokens from "../Utils/Tokens.js";
 import dotenv from "dotenv";
-import jwt from "jsonwebtoken";
 dotenv.config()
 const authMiddleware = async (req, res, next) => {
 	try {
-		const token = req.headers.authorization.split(" ")[1] || req.cookies.accessToken;
-		if (!token || token === "undefined") {
-			return res.status(401).json({
-				message: `⚠️ Unauthorized access! No token provided!!!`,
-				success: false
-			});
-		}
-		jwt.verify(token, process.env.JWT_SECRET_KEY_ACCESS_TOKEN, (error, decoded) => {
-			if (error) {
-				return res.status(401).json({
-					message: `⚠️ ${error.message}`,
-					success: false
-				});
-			}
-			req.user = decoded;
-			next();
-		})
+		const accessToken = req.headers.authorization?.split(" ")[1] || req.cookies.accessToken;
+		if (!accessToken || accessToken === "undefined") return handleError(res, 401, `⚠️ Unauthorized access! No token provided!!!`)
+
+		const decoded = Tokens.VerifyToken(accessToken, "accessToken");
+		if (!decoded) return handleError(res, 401, `⚠️ Unauthorized access! Invalid token!!!`);
+		req.user = decoded;
+		next();
 	} catch (error) {
-		return res.status(502).json({
-			message: `⚠️ Error while verifying the token: ${error.message}`,
-			success: false
-		})
+		return handleError(res, 401, `⚠️ Error: ${error.message}`);
 	}
 }
 
