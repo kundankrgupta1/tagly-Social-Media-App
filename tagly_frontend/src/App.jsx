@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { BiSolidError } from "react-icons/bi";
 import Loading from "./Components/Loading";
 import axiosInstance from "./utils/axiosInstance";
-// const baseURL = "https://tagly-backend.onrender.com";
 const App = () => {
 	const location = useLocation();
 	const hidePaths = ["/api/v1/user/auth"]

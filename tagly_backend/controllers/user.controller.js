@@ -55,7 +55,7 @@ const userRegistration = async (req, res) => {
 		await sendOtp(email, otp, "Registration", username)
 		await newUser.save();
 
-		return handleSuccess(res, 201, `✅ otp sent for Registration ${otp}`)
+		return handleSuccess(res, 201, `✅ otp sent for Registration`)
 	} catch (error) {
 		return handleError(res, 500, `⚠️ Error: ${error.message}`)
 	}
@@ -86,7 +86,7 @@ const userLogin = async (req, res) => {
 			await sendOtp(email, otp, "Verification", user.username)
 			await user.save();
 
-			return handleSuccess(res, 200, `❌ user found but not verified, otp send for Verification ${otp}`)
+			return handleSuccess(res, 200, `❌ user found but not verified, otp send for Verification`)
 		}
 
 		const otp = generateOTP();
@@ -98,7 +98,7 @@ const userLogin = async (req, res) => {
 		await sendOtp(email, otp, "Login", user.username)
 		await user.save();
 
-		return handleSuccess(res, 200, `✅ otp sent for Login ${otp}`);
+		return handleSuccess(res, 200, `✅ otp sent for Login`);
 	} catch (error) {
 		return handleError(res, 500, `⚠️ Error: ${error.message}`)
 	}

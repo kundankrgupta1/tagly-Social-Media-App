@@ -1,5 +1,5 @@
 import axios from "axios";
-// const baseURL = "https://tagly-backend.onrender.com";
+// const baseURL = "https://tagly-social-media-app.onrender.com";
 const baseURL = "http://localhost:3000";
 
 const axiosInstance = axios.create({
