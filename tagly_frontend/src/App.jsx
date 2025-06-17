@@ -19,6 +19,8 @@ const App = () => {
 		setIsLoading(true);
 		try {
 			const res = await axiosInstance.get(`/health-check`);
+			console.log(res);
+			
 			if (res.status === 200) {
 				setIsLoading(false);
 				setServerRunning(true);
