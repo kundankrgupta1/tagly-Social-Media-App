@@ -5,7 +5,7 @@ import postRoutes from "../routes/post.route.js";
 import cookieParser from "cookie-parser";
 const app = express();
 app.use(cors({
-	origin: "https://tagly-social-media-app.vercel.app/",
+	origin: "https://tagly1.netlify.app",
 	credentials: true
 }));
 app.use(express.json());
