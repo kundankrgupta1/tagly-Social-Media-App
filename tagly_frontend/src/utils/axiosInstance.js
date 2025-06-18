@@ -1,6 +1,6 @@
 import axios from "axios";
-const baseURL = "https://tagly-social-media-app.onrender.com";
-// const baseURL = "http://localhost:3000";
+// const baseURL = "https://tagly-social-media-app.onrender.com";
+const baseURL = "http://localhost:3000";
 
 const axiosInstance = axios.create({
 	baseURL: baseURL,
@@ -27,8 +27,7 @@ axiosInstance.interceptors.response.use(
 		const originalRequest = error.config;
 		if (error.response?.status === 401 && !originalRequest._retry) {
 			if (originalRequest.url === "/refresh-token") {
-				localStorage.clear();
-				window.location.href = "/api/v1/user/auth";
+				window.location.href = "/auth";
 				return Promise.reject(error);
 			}
 
@@ -55,8 +54,7 @@ axiosInstance.interceptors.response.use(
 				isRefreshing = false;
 				processQueue(err, null);
 				if (err.response?.data?.logoutRequired) {
-					localStorage.clear();
-					window.location.href = "/api/v1/user/auth";
+					window.location.href = "/auth";
 				}
 				return Promise.reject(err);
 			}

@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom"
 import Logo from "./Logo"
 import Button from "./Button";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { ContextAPI } from "../context/ContextProvider";
 import { IoMdLogIn } from "react-icons/io";
 import { FiPlusCircle } from "react-icons/fi";
@@ -11,6 +11,9 @@ import { FaRegUser } from "react-icons/fa";
 const Navbar = () => {
 	const navigate = useNavigate();
 	const { isAuth, user } = useContext(ContextAPI);
+	useEffect(() => {
+
+	}, [user])
 	return (
 		<>
 			<div className="px-4 md:px-8 py-3 flex items-center justify-between border-b mb-4"
@@ -35,7 +38,7 @@ const Navbar = () => {
 						onClick={() => navigate("/explore")}
 					/>
 					{isAuth ?
-						<Link to={`/api/v1/user/profile/${user._id}`}>
+						<Link to={`/profile/${user?._id}`}>
 							<Button
 								img={user?.profilePicture ? user?.profilePicture : "https://tinyurl.com/5paj2hrp"}
 								text={user?.username}
@@ -47,7 +50,7 @@ const Navbar = () => {
 							/>
 						</Link>
 						:
-						<Link to={"/api/v1/user/auth"}>
+						<Link to={"/auth"}>
 							<Button
 								icon={<IoMdLogIn size={"1.5rem"} />}
 								text={"login"}

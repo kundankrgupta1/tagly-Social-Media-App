@@ -6,11 +6,23 @@ import PrivateRoute from './PrivateRoute'
 import EditProfile from '../auth/EditProfile'
 import CreatePost from '../Posts/CreatePost'
 import Explore from '../Posts/Explore'
+
+
+// signup =>
+//  /api/v1/user/auth
+
+// profile =>
+// /api/v1/user/profile/:_id
+
+
+// edit profile =>
+//  /api/v1/user/edit/:_id
+
 const AllRoutes = () => {
 	return (
 		<div>
 			<Routes>
-				<Route path="/api/v1/user/auth" element={<Accounts />} />
+				<Route path="/auth" element={<Accounts />} />
 				<Route path="/" element={
 					<PrivateRoute>
 						<Home />
@@ -21,12 +33,12 @@ const AllRoutes = () => {
 						<Explore />
 					</PrivateRoute>
 				} />
-				<Route path="/api/v1/user/profile/:_id" element={
+				<Route path="/profile/:_id" element={
 					<PrivateRoute>
 						<Profile />
 					</PrivateRoute>
 				} />
-				<Route path="/api/v1/user/edit/:_id" element={
+				<Route path="/edit/:_id" element={
 					<PrivateRoute>
 						<EditProfile />
 					</PrivateRoute>

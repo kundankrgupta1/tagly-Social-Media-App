@@ -86,7 +86,7 @@ const userLogin = async (req, res) => {
 			await sendOtp(email, otp, "Verification", user.username)
 			await user.save();
 
-			return handleSuccess(res, 200, `❌ user found but not verified, otp send for Verification`)
+			return handleSuccess(res, 200, `❌ user found but not verified, otp send for Verification ${otp}`)
 		}
 
 		const otp = generateOTP();
@@ -98,7 +98,7 @@ const userLogin = async (req, res) => {
 		await sendOtp(email, otp, "Login", user.username)
 		await user.save();
 
-		return handleSuccess(res, 200, `✅ otp sent for Login`);
+		return handleSuccess(res, 200, `✅ otp sent for Login ${otp}`);
 	} catch (error) {
 		return handleError(res, 500, `⚠️ Error: ${error.message}`)
 	}
@@ -244,7 +244,7 @@ const updateProfile = async (req, res) => {
 		if (bio) user.bio = bio;
 		await user.save();
 
-		return handleSuccess(res, 200, "✅ profile updated successfully!", { data: user });
+		return handleSuccess(res, 200, "✅ profile updated successfully!", { user: { _id: user._id, username: user.username, email: user.email, profilePicture: user.profilePicture } });
 	} catch (error) {
 		return handleError(res, 500, `⚠️ Error: ${error.message}`);
 	}

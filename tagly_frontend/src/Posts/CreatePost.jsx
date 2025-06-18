@@ -1,8 +1,7 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IoIosSend } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import { Input } from "../Components/InputFeild";
-import { ContextAPI } from "../context/ContextProvider";
 import Button from "../Components/Button";
 import Loading from "../Components/Loading";
 import axiosInstance from "../utils/axiosInstance";
@@ -20,23 +19,35 @@ const CreatePost = () => {
 	const handleCreatePost = async (e) => {
 		e.preventDefault();
 		setIsLoading(true);
-		try {
-			if (caption.trim() && location.trim()) {
-				const formData = new FormData();
-				formData.append("location", location);
-				formData.append("caption", caption);
-				formData.append("image", image);
-				const res = await axiosInstance.post(`/post`, formData, { withCredentials: true });
-				if (res.status === 201) {
-					showToast(true, res.data.message, "success");
-					setTimeout(() => {
-						navigate("/");
-					}, 2000);
-				}
-			} else {
-				showToast(true, "Please fill in all fields", "error");
-			}
+
+		const formData = new FormData();
+		formData.append("caption", caption);
+		formData.append("location", location);
+		formData.append("image", image);
+
+		if (!caption || !location || !image) {
 			setIsLoading(false);
+			showToast(true, "All fields are required!", "error");
+			return;
+		}
+		
+		try {
+			const res = await axiosInstance.post(`/post`, formData, {
+				withCredentials: true,
+				headers: {
+					ContentType: "multipart/form-data",
+				}
+			});
+			setIsLoading(false);
+			if (res.status === 201) {
+				showToast(true, res.data.message, "success");
+				setCaption("");
+				setLocation("");
+				setImage(null);
+				setTimeout(() => {
+					navigate("/");
+				}, 2000);
+			}
 		} catch (error) {
 			setIsLoading(false);
 			showToast(true, error.response?.data?.message || "Something went wrong!", "error");

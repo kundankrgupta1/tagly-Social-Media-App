@@ -56,7 +56,7 @@ const SinglePost = ({ userData, setSinglePostView, handleDelete }) => {
 							{user?._id !== userData?._id && (
 								<>
 									<span>•</span>
-									<button className="text-xs font-medium" onClick={() => console.log("Follow kar liya h")}>
+									<button className="text-xs font-medium">
 										Follow
 									</button>
 								</>
@@ -100,7 +100,7 @@ const SinglePost = ({ userData, setSinglePostView, handleDelete }) => {
 									{user?._id !== userData?._id && (
 										<>
 											<span>•</span>
-											<button className="text-xs font-medium text-white" onClick={() => console.log("Follow kar liya h")}>
+											<button className="text-xs font-medium text-white">
 												Follow
 											</button>
 										</>

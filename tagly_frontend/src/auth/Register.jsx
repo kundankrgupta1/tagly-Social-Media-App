@@ -26,21 +26,21 @@ const Register = () => {
 			try {
 				const res = await axiosInstance.post(`/reg`, { username, email, password });
 				if (res.status === 201) {
-					setIsLoading(false);
 					showToast(true, res.data.message, "success");
 					setTimeout(() => {
 						setOtpSent(true);
 					}, 2000);
 				}
 			} catch (error) {
-				setIsLoading(false);
 				showToast(true, error.response.data.message, "error");
+			} finally{
+				setIsLoading(false);
 			}
 		} else {
 			try {
+				setIsLoading(true);
 				const res = await axiosInstance.post(`/otp`, { email, otp });
 				if (res.status === 200) {
-					setIsLoading(false);
 					showToast(true, res.data.message, "success");
 					setTimeout(() => {
 						setOtpSent(false);
@@ -48,8 +48,9 @@ const Register = () => {
 					}, 2000);
 				}
 			} catch (error) {
-				setIsLoading(false);
 				showToast(true, error.response.data.message, "error");
+			} finally {
+				setIsLoading(false);
 			}
 		}
 

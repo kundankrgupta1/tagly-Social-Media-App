@@ -27,24 +27,21 @@ const Login = () => {
 			try {
 				const res = await axiosInstance.post(`/login`, { email, password });
 				if (res.status === 200) {
-					setIsLoading(false);
 					showToast(true, res.data.message, "success");
 					setTimeout(() => {
 						setOtpSent(true);
 					}, 2000)
-				} else {
-					setIsLoading(false);
-					showToast(true, res.data.message, "error");
 				}
 			} catch (error) {
-				setIsLoading(false);
 				showToast(true, error.response.data.message, "error");
+			} finally {
+				setIsLoading(false);
 			}
 		} else {
 			try {
+				setIsLoading(true);
 				const res = await axiosInstance.post(`/otp`, { email, otp });
 				if (res.status === 200) {
-					setIsLoading(false);
 					showToast(true, res.data.message, "success");
 					setIsAuth(true);
 					setUser(res.data.user);
@@ -55,8 +52,9 @@ const Login = () => {
 					}, 2000);
 				}
 			} catch (error) {
-				setIsLoading(false);
 				showToast(true, error.response.data.message, "error");
+			} finally {
+				setIsLoading(false);
 			}
 		}
 

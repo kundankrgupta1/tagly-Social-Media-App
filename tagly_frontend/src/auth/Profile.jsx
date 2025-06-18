@@ -24,10 +24,10 @@ const Profile = () => {
 			const res = await axiosInstance.get(`/user/${_id}`, { withCredentials: true });
 			if (res.status === 200) {
 				setUserData(res.data.data);
-				setIsLoading(false);
 			}
 		} catch (error) {
 			showToast(true, error.response.data.message, "error");
+		} finally {
 			setIsLoading(false);
 		}
 	}
@@ -52,7 +52,7 @@ const Profile = () => {
 				setTimeout(() => {
 					localStorage.clear();
 					setIsAuth(false);
-					navigate("/api/v1/user/auth");
+					navigate("/auth");
 				}, 2000);
 			}
 		} catch (error) {
@@ -78,7 +78,7 @@ const Profile = () => {
 								<div className="flex items-center gap-2 md:gap-8">
 									<p className="font-bold text-2xl">{userData?.username}</p>
 									{user?._id === userData?._id ?
-										<Link to={`/api/v1/user/edit/${_id}`}>
+										<Link to={`/edit/${_id}`}>
 											<Button
 												type="button"
 												icon={<FaUserEdit size={"1.5rem"} />}

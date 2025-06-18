@@ -5,8 +5,9 @@ import { FiSend } from "react-icons/fi";
 import { ContextAPI } from "../context/ContextProvider";
 import { Link } from "react-router-dom";
 import { calculateTimeAgo } from "../utils/Time";
+import Loading from "../Components/Loading";
 
-const PostCard = ({ _id, userId, caption, image, location, createdAt, handleDelete }) => {
+const PostCard = ({ _id, userId, caption, image, location, createdAt, handleDelete, isLoadingDel }) => {
 
 	const { user } = useContext(ContextAPI)
 	const postTime = calculateTimeAgo(createdAt)
@@ -44,7 +45,7 @@ const PostCard = ({ _id, userId, caption, image, location, createdAt, handleDele
 						<div>
 							<div className="flex items-center gap-2">
 								<Link
-									to={`/api/v1/user/profile/${userId?._id}`}
+									to={`/profile/${userId?._id}`}
 									className="text-sm font-medium hover:text-blue-600"
 								>
 									{userId?.username}
@@ -54,10 +55,7 @@ const PostCard = ({ _id, userId, caption, image, location, createdAt, handleDele
 								{user?._id !== userId?._id ?
 									<>
 										<span>•</span>
-										<button
-											onClick={() => console.log("Follow kar liya h")}
-											className="text-xs font-medium text-blue-500"
-										>
+										<button className="text-xs font-medium text-blue-500">
 											Follow
 										</button>
 									</>
@@ -70,7 +68,7 @@ const PostCard = ({ _id, userId, caption, image, location, createdAt, handleDele
 					</div>
 					{user?._id === userId?._id && <div className="flex gap-3">
 						<button className="text-2xl"><MdEdit /></button>
-						<button className="text-2xl" onClick={() => handleDelete(_id)}><MdDelete /></button>
+						<button className="text-2xl" onClick={() => handleDelete(_id)}>{isLoadingDel ? <Loading /> : <MdDelete />}</button>
 					</div>}
 				</div>}
 			<img src={image} alt="" className="rounded-md w-96 h-[500px]" />

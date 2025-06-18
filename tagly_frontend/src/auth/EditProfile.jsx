@@ -14,7 +14,7 @@ const EditProfile = () => {
 	const { toast, showToast } = useToast();
 	const _id = useParams();
 	const navigate = useNavigate();
-	const { user } = useContext(ContextAPI);
+	const { user, setUser } = useContext(ContextAPI);
 	const imageRef = useRef(null);
 	const inputRef = useRef(null);
 	const [userData, setUserData] = useState(null);
@@ -46,7 +46,6 @@ const EditProfile = () => {
 				const allowedExtensions = ["image/jpeg", "image/jpg", "image/png"];
 				if (!allowedExtensions.includes(file.type)) {
 					imageRef.current.value = "";
-					setIsLoading(false);
 					showToast(true, "❌ Only jpg, jpeg, and png file types are allowed!", "error");
 					return;
 				}
@@ -56,20 +55,18 @@ const EditProfile = () => {
 			if (updataBio.trim()) formData.append("bio", updataBio);
 
 			const res = await axiosInstance.put(`/edit/${_id._id}`, formData, { withCredentials: true });
-			setIsLoading(false);
 			if (res.status === 200) {
+				setUser(res.data.user);
+				localStorage.setItem("user", JSON.stringify(res.data.user));
 				showToast(true, res.data.message, "success");
-				localStorage.removeItem("profilePicture");
-				localStorage.removeItem("username");
-				localStorage.setItem("profilePicture", res.data.data.profilePicture);
-				localStorage.setItem("username", res.data.data.username);
 				setTimeout(() => {
-					navigate(`/api/v1/user/profile/${_id._id}`);
+					navigate(`/profile/${_id._id}`);
 				}, 2000)
 			}
 		} catch (error) {
-			setIsLoading(false);
 			showToast(true, error.response.data.message || "Something went wrong.", "error");
+		} finally {
+			setIsLoading(false);
 		}
 	}
 
@@ -133,7 +130,7 @@ const EditProfile = () => {
 							type={"button"}
 							icon={<CgClose size={"1.5rem"} />}
 							text={"cancel"}
-							onClick={() => navigate(`/api/v1/user/profile/${_id._id}`)}
+							onClick={() => navigate(`/profile/${_id._id}`)}
 						/>
 					</div>
 

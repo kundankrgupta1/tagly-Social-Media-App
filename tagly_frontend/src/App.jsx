@@ -1,16 +1,14 @@
 import { useLocation } from "react-router-dom"
 import Navbar from "./Components/Navbar"
 import AllRoutes from "./routes/AllRoutes"
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { BiSolidError } from "react-icons/bi";
 import Loading from "./Components/Loading";
 import axiosInstance from "./utils/axiosInstance";
 const App = () => {
 	const location = useLocation();
-	const hidePaths = ["/api/v1/user/auth"]
+	const hidePaths = ["/auth"]
 	const hideComponents = hidePaths.includes(location.pathname);
-
 	const [serverRunning, setServerRunning] = useState(false);
 	const [serverMessage, setServerMessage] = useState("");
 	const [isLoading, setIsLoading] = useState(true);

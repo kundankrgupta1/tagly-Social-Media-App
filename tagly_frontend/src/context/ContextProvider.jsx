@@ -1,14 +1,28 @@
-import { createContext, useState } from "react"
+import { createContext, useEffect, useState } from "react"
 export const ContextAPI = createContext();
 
+const getStoredUser = () => {
+	try {
+		const storedUser = localStorage.getItem("user");
+		return (!storedUser || storedUser === "undefined") ? null : JSON.parse(storedUser);
+	} catch (error) {
+		return null;
+	}
+}
 const ContextProvider = ({ children }) => {
+	const [user, setUser] = useState(getStoredUser());
+	const [isAuth, setIsAuth] = useState(!getStoredUser() ? false : true);
 	const [toggle, setToggle] = useState(false);
-	const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
-	const [isAuth, setIsAuth] = useState(!localStorage.getItem("user") ? false : true);
-	const [allPostExplore, setAllPostExplore] = useState([]);
+	
+	useEffect(() => {
+		if (!user) {
+			setIsAuth(false);
+			localStorage.clear();
+		}
+	}, [user])
 
 	return (
-		<ContextAPI.Provider value={{ allPostExplore, setAllPostExplore, toggle, setToggle, isAuth, setIsAuth, user, setUser }}>
+		<ContextAPI.Provider value={{ toggle, setToggle, isAuth, setIsAuth, user, setUser }}>
 			{children}
 		</ContextAPI.Provider>
 	)
