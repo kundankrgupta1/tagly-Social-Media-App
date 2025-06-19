@@ -65,53 +65,50 @@ const Login = () => {
 	}, [otpSent])
 
 	return (
-		<div className="flex justify-center items-center">
-			<div></div>
-			<div className="flex flex-col gap-4">
-				<h1 className="text-3xl font-bold text-center mb-4">{!otpSent ? "Login" : "Verify"}</h1>
-				<form onSubmit={handleLogin} className="flex flex-col gap-4">
-					{!otpSent && <Input
-						ref={inputRef}
-						type="email"
-						value={email}
-						placeholder="Email"
+		<div className="flex flex-col gap-4">
+			<h1 className="text-3xl font-bold text-center mb-4">{!otpSent ? "Login" : "Verify"}</h1>
+			<form onSubmit={handleLogin} className="flex flex-col gap-4">
+				{!otpSent && <Input
+					ref={inputRef}
+					type="email"
+					value={email}
+					placeholder="Email"
+					required={true}
+					onChange={(e) => setEmail(e.target.value)}
+				/>}
+				{!otpSent ?
+					<Input
+						type="password"
+						value={password}
+						placeholder="Password"
 						required={true}
-						onChange={(e) => setEmail(e.target.value)}
+						onChange={(e) => setPassword(e.target.value)}
+					/>
+					:
+					<Input
+						type="text"
+						value={otp}
+						placeholder="Enter OTP"
+						required={true}
+						onChange={(e) => setOtp(e.target.value)}
 					/>}
-					{!otpSent ?
-						<Input
-							type="password"
-							value={password}
-							placeholder="Password"
-							required={true}
-							onChange={(e) => setPassword(e.target.value)}
-						/>
-						:
-						<Input
-							type="text"
-							value={otp}
-							placeholder="Enter OTP"
-							required={true}
-							onChange={(e) => setOtp(e.target.value)}
-						/>}
-					{!otpSent ?
-						<Button
-							type="submit"
-							icon={!isLoading && <IoMdLogIn size={"1.5rem"} />}
-							text={isLoading ? <Loading text={"OTP sending..."} /> : "login"}
-							style={"border-2"}
-						/>
-						:
-						<Button
-							type="submit"
-							icon={!isLoading && <FaCheck size={"1.5rem"} />}
-							text={isLoading ? <Loading text={"verifying..."} /> : "verify"}
-							style={"border-2"}
-						/>
-					}
-				</form>
-				{toast?.isOpen && <Toast toast={toast} />}
-			</div>
+				{!otpSent ?
+					<Button
+						type="submit"
+						icon={!isLoading && <IoMdLogIn size={"1.5rem"} />}
+						text={isLoading ? <Loading text={"OTP sending..."} /> : "login"}
+						style={"border-2"}
+					/>
+					:
+					<Button
+						type="submit"
+						icon={!isLoading && <FaCheck size={"1.5rem"} />}
+						text={isLoading ? <Loading text={"verifying..."} /> : "verify"}
+						style={"border-2"}
+					/>
+				}
+			</form>
+			{toast?.isOpen && <Toast toast={toast} />}
 		</div>
 	)
 }
