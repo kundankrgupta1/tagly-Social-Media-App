@@ -11,4 +11,4 @@ const Button = ({ text, icon, img, style, type, onClick, textStyle, imgStyle, ic
 	)
 }
 
-export default Button
+export default Button;

@@ -3,7 +3,6 @@ import postModel from "../models/post.model.js";
 import userModel from "../models/user.model.js";
 import { handleError, handleSuccess } from "../Utils/responseHandler.js";
 
-
 const getAllComment = async (req, res) => {
 	const { _id } = req.user;
 	const { postId } = req.params;
