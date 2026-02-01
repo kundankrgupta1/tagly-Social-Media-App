@@ -60,7 +60,7 @@ const unfollow = async (req, res) => {
 
 	} catch (error) {
 		return handleError(res, 500, `⚠️ Error: ${error.message}`);
-	}
+	};
 }
 
 export default { followUser, unfollow };
